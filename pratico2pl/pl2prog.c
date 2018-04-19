@@ -14,8 +14,15 @@ typedef struct taglist {
 } Taglist;
 
 char* getTagName(char* text){
-    char* name = malloc(sizeof(char) * strlen(text));
-    name = strcpy(name, text);
+    char * pch;
+    char* name = NULL;
+
+    pch = strtok (text,"<> ="); //mais expressoes regulares ;D <x=123> -> x
+    if(!strstr(pch, "/")) {
+        //printf("Can't get the name of a close tag");
+        name = malloc(sizeof(char) * strlen(pch));
+        name = strcpy(name, pch);
+    }
     return name;
 }
 
