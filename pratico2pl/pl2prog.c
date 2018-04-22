@@ -41,8 +41,8 @@ void buildTagStruct(Taglist* tags){
             tags -> subtag = malloc(sizeof(Taglist));
             Taglist* subtagptr = tags -> subtag;
             subtagptr -> tagname = getTagName(yytext);
-            
-            printf("%s\n", subtagptr -> tagname);
+
+            printf("%s -> %s ;\n", tags -> tagname, subtagptr -> tagname);
 
             subtagptr -> prev = tags;
             buildTagStruct(subtagptr);
@@ -54,6 +54,10 @@ void buildTagStruct(Taglist* tags){
             nextptr -> next = malloc(sizeof(Taglist));
             nextptr -> next -> prev = tags;
             nextptr -> next -> tagname = getTagName(yytext);
+
+            printf("%s -> %s ;\n", tags -> tagname, nextptr -> next -> tagname);
+
+
             buildTagStruct(nextptr -> next);
         }
     }
@@ -76,10 +80,12 @@ void buildTagStruct(Taglist* tags){
 
 void printTagStruct(Taglist* tags){
     char* left = tags -> tagname;
-    ptr = tags -> subtag;
-    while(ptr -> next != NULL) {
-        
+    Taglist* subtags = tags -> subtag;
+
+    while(subtags -> next != NULL){
+        subtags = subtags -> next;
     }
+
 }
 
 int main(){
@@ -87,7 +93,9 @@ int main(){
     Taglist* tags = malloc(sizeof(Taglist));
     Taglist* head = tags;
 
+    printf("strict digraph g {\n");
     buildTagStruct(tags);
-    printTagStruct(tags);
+    printf("}\n");
+    printf("\n");
     return 0;
 }
