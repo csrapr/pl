@@ -8,8 +8,9 @@ extern int yylineno;
 extern char* yytext;
 
 typedef struct taglist {
-    char tagname[64];
+    char* tagname;
     struct taglist* subtag;
+    struct taglist* prev;
     struct taglist* next;
 } Taglist;
 
@@ -26,18 +27,67 @@ char* getTagName(char* text){
     return name;
 }
 
-
-int main(){
-    int ntoken, vtoken;
-
-    ntoken = yylex();
-
-    while(ntoken) {
-        //imprime 1 se e uma tag nova, 2 se e para fechar uma tag - debugk
-        printf("%d  -- %s\n", ntoken, getTagName(yytext));
-        //vai buscar outro token
-        ntoken = yylex();
+void buildTagStruct(Taglist* tags){
+    //ntoken: 1 - tag, 2 - closetag
+    int ntoken = yylex();
+    
+    if(ntoken == 1 && tags->tagname == NULL){
+        tags -> tagname = getTagName(yytext);
+        buildTagStruct(tags);
     }
 
+    else if(ntoken == 1 && tags->tagname != NULL){
+        if(tags -> subtag == NULL){
+            tags -> subtag = malloc(sizeof(Taglist));
+            Taglist* subtagptr = tags -> subtag;
+            subtagptr -> tagname = getTagName(yytext);
+            
+            printf("%s\n", subtagptr -> tagname);
+
+            subtagptr -> prev = tags;
+            buildTagStruct(subtagptr);
+        }
+        else{
+            Taglist* nextptr = tags -> subtag;
+            while(nextptr -> next != NULL) nextptr = nextptr -> next;
+
+            nextptr -> next = malloc(sizeof(Taglist));
+            nextptr -> next -> prev = tags;
+            nextptr -> next -> tagname = getTagName(yytext);
+            buildTagStruct(nextptr -> next);
+        }
+    }
+
+    else if(ntoken == 2){
+        if(tags->prev != NULL){
+            tags = tags->prev;
+            buildTagStruct(tags);
+        }
+        else {
+            //desnecessario?
+            Taglist* ptr = tags;
+            while(ptr -> next != NULL) ptr = ptr -> next;
+            ptr -> next = malloc(sizeof(Taglist));
+            ptr -> next -> prev = tags;
+            buildTagStruct(ptr -> next);
+        }
+    }
+}
+
+void printTagStruct(Taglist* tags){
+    char* left = tags -> tagname;
+    ptr = tags -> subtag;
+    while(ptr -> next != NULL) {
+        
+    }
+}
+
+int main(){
+
+    Taglist* tags = malloc(sizeof(Taglist));
+    Taglist* head = tags;
+
+    buildTagStruct(tags);
+    printTagStruct(tags);
     return 0;
 }
