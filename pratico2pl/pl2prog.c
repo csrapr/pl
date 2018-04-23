@@ -14,13 +14,14 @@ typedef struct taglist {
     struct taglist* next;
 } Taglist;
 
+FILE *f;
+
 char* getTagName(char* text){
     char * pch;
     char* name = NULL;
 
-    pch = strtok (text,"<> ="); //mais expressoes regulares ;D <x=123> -> x
+    pch = strtok (text,"<> =");
     if(!strstr(pch, "/")) {
-        //printf("Can't get the name of a close tag");
         name = malloc(sizeof(char) * strlen(pch));
         name = strcpy(name, pch);
     }
@@ -42,7 +43,8 @@ void buildTagStruct(Taglist* tags){
             Taglist* subtagptr = tags -> subtag;
             subtagptr -> tagname = getTagName(yytext);
 
-            printf("%s -> %s ;\n", tags -> tagname, subtagptr -> tagname);
+            if(tags-> tagname != NULL && subtagptr -> tagname != NULL) 
+                fprintf(f, "%s -> %s ;\n", tags -> tagname, subtagptr -> tagname);
 
             subtagptr -> prev = tags;
             buildTagStruct(subtagptr);
@@ -55,7 +57,8 @@ void buildTagStruct(Taglist* tags){
             nextptr -> next -> prev = tags;
             nextptr -> next -> tagname = getTagName(yytext);
 
-            printf("%s -> %s ;\n", tags -> tagname, nextptr -> next -> tagname);
+            if(tags -> tagname != NULL && nextptr -> next -> tagname != NULL)
+                fprintf(f, "%s -> %s ;\n", tags -> tagname, nextptr -> next -> tagname);
 
 
             buildTagStruct(nextptr -> next);
@@ -93,9 +96,10 @@ int main(){
     Taglist* tags = malloc(sizeof(Taglist));
     Taglist* head = tags;
 
-    printf("strict digraph g {\n");
+    f = fopen("output.dot", "w");
+
+    fprintf(f, "strict digraph g {\n");
     buildTagStruct(tags);
-    printf("}\n");
-    printf("\n");
+    fprintf(f, "}\n");
     return 0;
 }
