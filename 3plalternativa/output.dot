@@ -1,0 +1,27 @@
+strict digraph g {
+
+x -> y ;
+y -> w ;
+w -> www ;
+
+        
+        y -> k ;
+
+        y -> obs ;
+
+
+    y -> z ;
+
+    y -> processo ;
+processo -> pasta ;
+
+        processo -> data ;
+
+        processo -> nome ;
+
+        processo -> pai ;
+
+        processo -> mae ;
+
+    
+}
