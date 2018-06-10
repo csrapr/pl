@@ -3,3 +3,10 @@
 %inv NT BT
 
 animal
+PT animal
+NT cat, dog, cow,
+fish, ant
+NT camel
+BT life being
+SN animal que tem sete
+vidas e m(e)ia

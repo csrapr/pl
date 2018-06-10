@@ -1,0 +1,144 @@
+DOT(1)                      General Commands Manual                     DOT(1)
+
+NNAAMMEE
+       dot - filter for drawing directed graphs
+       neato - filter for drawing undirected graphs
+       twopi - filter for radial layouts of graphs
+       circo - filter for circular layout of graphs
+       fdp - filter for drawing undirected graphs
+       sfdp - filter for drawing large undirected graphs
+       patchwork - filter for tree maps
+
+SSYYNNOOPPSSIISS
+       ddoott [_o_p_t_i_o_n_s] [files]
+       nneeaattoo [_o_p_t_i_o_n_s] [files]
+       ttwwooppii [_o_p_t_i_o_n_s] [files]
+       cciirrccllee [_o_p_t_i_o_n_s] [files]
+       ffddpp [_o_p_t_i_o_n_s] [files]
+       ssffddpp [_o_p_t_i_o_n_s] [files]
+       ppaattcchhwwoorrkk [_o_p_t_i_o_n_s] [files]
+
+DDEESSCCRRIIPPTTIIOONN
+       These  are a collection of programs for drawing graphs.  There is actu‐
+       ally only one main program; the specific layout algorithms  implemented
+       as  plugins.  Thus,  they  largely  share  all of the same command-line
+       options.  _d_o_t draws directed graphs.  It works well on DAGs  and  other
+       graphs that can be drawn as hierarchies.
+
+       _n_e_a_t_o  draws  undirected graphs using ``spring'' models (see Kamada and
+       Kawai, Information Processing Letters 31:1, April 1989).
+
+       _t_w_o_p_i draws graphs using a radial layout (see G.  Wills,  Symposium  on
+       Graph  Drawing  GD'97, September, 1997).  Basically, one node is chosen
+       as the center and put at the origin.  The remaining nodes are placed on
+       a  sequence  of  concentric  circles  centered about the origin, each a
+       fixed radial distance from the previous circle.  All nodes  distance  1
+       from  the  center  are placed on the first circle; all nodes distance 1
+       from a node on the first circle are placed on the second circle; and so
+       forth.
+
+       _c_i_r_c_o  draws graphs using a circular layout (see Six and Tollis, GD '99
+       and ALENEX '99, and Kaufmann and Wiese, GD '02.)  The  tool  identifies
+       biconnected  components  and draws the nodes of the component on a cir‐
+       cle. The block‐cutpoint tree is then laid out using a recursive  radial
+       algorithm.  Edge  crossings within a circle are minimized by placing as
+       many edges on the circle's perimeter as possible.   In  particular,  if
+       the component is outerplanar, the component will have a planar layout.
+
+       If  a  node belongs to multiple non‐trivial biconnected components, the
+       layout puts the node in one of them. By default, this is the first non‐
+       trivial component found in the search from the root component.
+
+       _f_d_p  draws  undirected  graphs using a ``spring'' model. It relies on a
+       force‐directed approach in the spirit of Fruchterman and Reingold  (cf.
+       Software‐Practice & Experience 21(11), 1991, pp. 1129‐1164).
+
+       _s_f_d_p  also draws undirected graphs using the ``spring'' model described
+       above, but it uses a multi-scale approach to produce layouts  of  large
+       graphs in a reasonably short time.
+
+       _p_a_t_c_h_w_o_r_k draws the graph as a squarified treemap (see M. Bruls et al.,
+       "Squarified treemaps", Proc. Joint Eurographics and IEEE TCVG Symp.  on
+       Visualization,  2000, pp. 33-42). The clusters of the graph are used to
+       specify the tree.
+
+OOUUTTPPUUTT FFOORRMMAATTSS
+       Graphviz uses an extensible plugin mechanism for its output  renderers,
+       so to see what output formats your installation of dot supports you can
+       use ``dot -Txxx'' (where xxx is an unlikely format) and check the warn‐
+       ing  message.  Also, The plugin mechanism supports multiple implementa‐
+       tions of the output formats.  To see what variants are available,  use,
+       for example: ``dot -Tpng:'' and to force a particular variant, use, for
+       example: ``dot -Tpng:gd''
+
+       Traditionally, Graphviz supports the following:
+       --TTppss (PostScript),
+       --TTssvvgg --TTssvvggzz (Structured Vector Graphics),
+       --TTffiigg (XFIG graphics),
+       --TTppnngg --TTggiiff (bitmap graphics),
+       --TTiimmaapp (imagemap files for httpd servers for each node or edge that has
+       a non‐null "href" attribute.),
+       --TTccmmaappxx (client‐side imagemap for use in html and xhtml).
+       Additional  less  common  or more special‐purpose output formats can be
+       found at //http://www.graphviz.org/content/output-formats.
+
+       Alternative plugins providing support for a given output format can  be
+       found from the error message resulting from appending a ':' to the for‐
+       mat. e.g. --TTppnngg:: The first plugin listed is always the default.
+
+       The --PP switch can be used to produce a graph  of  all  output  variants
+       supported by plugins in the local installation of graphviz.
+
+GGRRAAPPHH FFIILLEE LLAANNGGUUAAGGEE
+       Here  is  a  synopsis  of  the  graph file language, normally using the
+       extension ..ggvv, for graphs:
+
+       [ssttrriicctt] (ggrraapphh|ddiiggrraapphh) _n_a_m_e { _s_t_a_t_e_m_e_n_t_‐_l_i_s_t }
+       is the top‐level graph. If the graph is ssttrriicctt, then multiple edges are
+       not  allowed  between  the  same  pairs  of nodes.  If it is a directed
+       graph, indicated by ddiiggrraapphh, then the _e_d_g_e_o_p must be "->". If it is  an
+       undirected ggrraapphh then the _e_d_g_e_o_p must be "--".
+
+       Statements may be:
+
+       _n_a_m_e==_v_a_l;;
+       nnooddee [[_n_a_m_e==_v_a_l]];;
+       eeddggee [[_n_a_m_e==_v_a_l]];;
+       Set  default graph, node, or edge attribute _n_a_m_e to _v_a_l.  Any subgraph,
+       node, or edge appearing after this inherits the new default attributes.
+
+       nn00 [[_n_a_m_e_0_=_v_a_l_0_,_n_a_m_e_1_=_v_a_l_1_,_._._.]];;
+       Creates node nn00 (if it does not already exist) and sets its  attributes
+       according to the optional list.
+
+       nn00 _e_d_g_e_o_p n1 _e_d_g_e_o_p _._._. _e_d_g_e_o_p nn [[_n_a_m_e_0_=_v_a_l_0_,_n_a_m_e_1_=_v_a_l_1_,_._._.]];;
+       Creates  edges  between nodes nn00, nn11, ..., nnnn and sets their attributes
+       according to the optional list.  Creates nodes as necessary.
+
+       [ssuubbggrraapphh _n_a_m_e] {{ _s_t_a_t_e_m_e_n_t_‐_l_i_s_t }}
+       Creates a subgraph.  Subgraphs may be used in place of nn00, ...,  nnnn  in
+       the  above statements to create edges.  [ssuubbggrraapphh _n_a_m_e] is optional; if
+       missing, the subgraph is assigned an internal name.
+
+       Comments may be /*C‐like*/ or //C++‐like.
+
+       Attribute names and values are ordinary (C‐style) strings.  The follow‐
+       ing sections describe attributes that control graph layout.
+
+       A   more   complete  description  of  the  language  can  be  found  at
+       http://www.graphviz.org/content/dot-language.
+
+GGRRAAPPHH,, NNOODDEE AANNDD EEDDGGEE AATTTTRRIIBBUUTTEESS
+       Graphviz uses the _n_a_m_e=_v_a_l_u_e attributes, attached to graphs, subgraphs,
+       nodes  and  edges, to tailor the layout and rendering. We list the more
+       prominent  attributes  below.  The  complete  list  is   available   at
+       http://www.graphviz.org/content/attrs.
+
+  GGrraapphh AAttttrriibbuutteess
+       ssiizzee==""_x_,_y"" specifies the maximum bounding box of drawing in inches.
+
+       rraattiioo==_f  sets  the aspect ratio to _f which may be a floating point num‐
+       ber, or one of the keywords ffiillll, ccoommpprreessss, or aauuttoo.
+
+       llaayyoouutt==_e_n_g_i_n_e indicates the preferred layout  engine  ("dot",  "neato",
+       fdp"  etc)  overriding  

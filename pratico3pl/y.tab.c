@@ -67,12 +67,44 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
+#include <glib.h>
 
 int yylex();
 void yyerror(char* c);
 int asprintf(char **strp, const char *fmt, ...);
 
-#line 76 "y.tab.c" /* yacc.c:339  */
+typedef struct dict{
+int numlanguages;
+int numinv;
+char* baselang;
+char* languages[2]; //baselang, outra lang
+char* inv[2];
+GHashTable *blocktable;// = g_hash_table_new(NULL,NULL);
+} *Dict;
+
+typedef struct block{
+char* baselangterm;
+char* otherlangterm;
+int numnarrowterms;
+char* narrowterms[4096];
+char* broadterm;
+char* description;
+} *Block;
+
+Dict dict;
+Block currentblock;
+char* currentlang;
+
+void addLanguage(char** languages, char* lang);
+void addInv(char** invs, char* inv);
+Block beginBlock(char* baselangterm);
+void addNarrowTerm(char* word);
+void addBroadTerm(char* word);
+void addOtherLangTerm(char* word);
+void addTerms(char* term);
+void addDescription(char* desc);
+
+#line 108 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -107,30 +139,28 @@ extern int yydebug;
     LANGS = 258,
     BASELANG = 259,
     INV = 260,
-    DESC = 261,
-    TERM = 262,
-    LANG = 263,
-    WORD = 264
+    TERM = 261,
+    LANG = 262,
+    WORD = 263
   };
 #endif
 /* Tokens.  */
 #define LANGS 258
 #define BASELANG 259
 #define INV 260
-#define DESC 261
-#define TERM 262
-#define LANG 263
-#define WORD 264
+#define TERM 261
+#define LANG 262
+#define WORD 263
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 11 "yacc.y" /* yacc.c:355  */
+#line 43 "yacc.y" /* yacc.c:355  */
 char* s;
 
-#line 134 "y.tab.c" /* yacc.c:355  */
+#line 164 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -147,7 +177,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 151 "y.tab.c" /* yacc.c:358  */
+#line 181 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -387,23 +417,23 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  12
+#define YYFINAL  16
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   9
+#define YYLAST   19
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  10
+#define YYNTOKENS  9
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  5
+#define YYNNTS  7
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  10
+#define YYNRULES  15
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  15
+#define YYNSTATES  21
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   264
+#define YYMAXUTOK   263
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -438,15 +468,15 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8,     9
+       5,     6,     7,     8
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    16,    16,    18,    19,    22,    23,    24,    25,    28,
-      29
+       0,    49,    49,    51,    52,    55,    56,    57,    58,    59,
+      62,    63,    66,    67,    70,    71
 };
 #endif
 
@@ -455,8 +485,9 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "LANGS", "BASELANG", "INV", "DESC",
-  "TERM", "LANG", "WORD", "$accept", "z", "prog", "inst", "languages", YY_NULLPTR
+  "$end", "error", "$undefined", "LANGS", "BASELANG", "INV", "TERM",
+  "LANG", "WORD", "$accept", "z", "prog", "inst", "languages", "invs",
+  "words", YY_NULLPTR
 };
 #endif
 
@@ -465,14 +496,14 @@ static const char *const yytname[] =
    (internal) symbol number NUM (which must be that of a token).  */
 static const yytype_uint16 yytoknum[] =
 {
-       0,   256,   257,   258,   259,   260,   261,   262,   263,   264
+       0,   256,   257,   258,   259,   260,   261,   262,   263
 };
 # endif
 
-#define YYPACT_NINF -8
+#define YYPACT_NINF -4
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-8)))
+  (!!((Yystate) == (-4)))
 
 #define YYTABLE_NINF -1
 
@@ -483,8 +514,9 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -1,    -7,     0,    -7,    -8,     7,    -8,    -1,    -7,    -8,
-      -8,    -8,    -8,    -8,    -8
+      -3,    -2,    -1,     0,    -4,     1,     8,    -4,    -3,    -2,
+      -4,    -4,     0,    -4,     1,    -4,    -4,    -4,    -4,    -4,
+      -4
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -492,20 +524,21 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       3,     0,     0,     0,     8,     0,     2,     3,    10,     5,
-       6,     7,     1,     4,     9
+       3,     0,     0,     0,     8,     0,     0,     2,     3,    11,
+       5,     6,    13,     7,    15,     9,     1,     4,    10,    12,
+      14
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -8,    -8,     2,    -8,    -3
+      -4,    -4,     2,    -4,     3,     4,     5
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     5,     6,     7,     9
+      -1,     6,     7,     8,    10,    13,    15
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -513,34 +546,37 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-      11,     8,     1,     2,     3,    14,     4,    12,    10,    13
+       1,     2,     3,     4,     5,     9,    11,    12,    16,    14,
+      17,     0,    18,     0,     0,     0,    19,     0,     0,    20
 };
 
-static const yytype_uint8 yycheck[] =
+static const yytype_int8 yycheck[] =
 {
-       3,     8,     3,     4,     5,     8,     7,     0,     8,     7
+       3,     4,     5,     6,     7,     7,     7,     7,     0,     8,
+       8,    -1,     9,    -1,    -1,    -1,    12,    -1,    -1,    14
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     3,     4,     5,     7,    11,    12,    13,     8,    14,
-       8,    14,     0,    12,    14
+       0,     3,     4,     5,     6,     7,    10,    11,    12,     7,
+      13,     7,     7,    14,     8,    15,     0,    11,    13,    14,
+      15
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    10,    11,    12,    12,    13,    13,    13,    13,    14,
-      14
+       0,     9,    10,    11,    11,    12,    12,    12,    12,    12,
+      13,    13,    14,    14,    15,    15
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     0,     2,     2,     2,     2,     1,     2,
-       1
+       2,     1,     2,     1,     2,     1
 };
 
 
@@ -1217,61 +1253,91 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 16 "yacc.y" /* yacc.c:1646  */
-    { printf("%s\n", (yyvsp[0].s)); }
-#line 1223 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 3:
-#line 18 "yacc.y" /* yacc.c:1646  */
-    { (yyval.s) = "";}
-#line 1229 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 4:
-#line 19 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "%s%s \n", (yyvsp[-1].s), (yyvsp[0].s)); }
-#line 1235 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 5:
-#line 22 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "linguas %s", (yyvsp[0].s)); }
-#line 1241 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 6:
-#line 23 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "baselang %s\n", (yyvsp[0].s));}
-#line 1247 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 7:
-#line 24 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "relacoes inversas %s", (yyvsp[0].s)); }
-#line 1253 "y.tab.c" /* yacc.c:1646  */
-    break;
-
-  case 8:
-#line 25 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "termo na baselang %s", (yyvsp[0].s));  }
+#line 49 "yacc.y" /* yacc.c:1646  */
+    { }
 #line 1259 "y.tab.c" /* yacc.c:1646  */
     break;
 
-  case 9:
-#line 28 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "%s %s", (yyvsp[-1].s), (yyvsp[0].s)); }
+  case 3:
+#line 51 "yacc.y" /* yacc.c:1646  */
+    { (yyval.s) = "";}
 #line 1265 "y.tab.c" /* yacc.c:1646  */
     break;
 
-  case 10:
-#line 29 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "%s\n", (yyvsp[0].s));      }
+  case 4:
+#line 52 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s%s \n", (yyvsp[-1].s), (yyvsp[0].s)); }
 #line 1271 "y.tab.c" /* yacc.c:1646  */
     break;
 
+  case 5:
+#line 55 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "linguas %s", (yyvsp[0].s));}
+#line 1277 "y.tab.c" /* yacc.c:1646  */
+    break;
 
-#line 1275 "y.tab.c" /* yacc.c:1646  */
+  case 6:
+#line 56 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "baselang %s\n", (yyvsp[0].s)); dict->baselang = strdup((yyvsp[0].s));}
+#line 1283 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 7:
+#line 57 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "relacoes inversas %s", (yyvsp[0].s)); }
+#line 1289 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 8:
+#line 58 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "termo na baselang %s\n", (yyvsp[0].s));  currentblock = beginBlock((yyvsp[0].s));}
+#line 1295 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 9:
+#line 59 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "Lang - %s, words - %s", (yyvsp[-1].s), (yyvsp[0].s)); currentlang = strdup((yyvsp[-1].s)); addTerms((yyvsp[0].s));}
+#line 1301 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 10:
+#line 62 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s %s", (yyvsp[-1].s), (yyvsp[0].s)); addLanguage(dict->languages, (yyvsp[-1].s));}
+#line 1307 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 11:
+#line 63 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s\n", (yyvsp[0].s)); addLanguage(dict->languages, (yyvsp[0].s));}
+#line 1313 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 12:
+#line 66 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s %s", (yyvsp[-1].s), (yyvsp[0].s)); addInv(dict->inv, (yyvsp[-1].s));}
+#line 1319 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 13:
+#line 67 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s\n", (yyvsp[0].s)); addInv(dict->inv, (yyvsp[0].s));}
+#line 1325 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 14:
+#line 70 "yacc.y" /* yacc.c:1646  */
+    {asprintf(&(yyval.s), "%s %s", (yyvsp[-1].s), (yyvsp[0].s));}
+#line 1331 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 15:
+#line 71 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s\n", (yyvsp[0].s));}
+#line 1337 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+
+#line 1341 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1499,16 +1565,100 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 31 "yacc.y" /* yacc.c:1906  */
+#line 73 "yacc.y" /* yacc.c:1906  */
 
 
 #include "lex.yy.c"
 
 int main(){
+    dict = (Dict) malloc(sizeof(Dict));
+    dict -> blocktable = g_hash_table_new(NULL,NULL);
+    dict -> numlanguages = 0;
+    dict->numinv = 0;
     yyparse();
     return 0;
 }
 
 void yyerror(char* s){
     fprintf(stderr, "%s, '%s', line %d \n", s, yytext, yylineno);
+}
+
+void addLanguage(char** languages, char* lang){
+    languages[dict->numlanguages] = strdup(lang);
+    dict->numlanguages++;
+}
+
+void addInv(char** invs, char* inv){
+    invs[dict->numinv] = strdup(inv);
+    dict->numinv++;
+}
+
+Block beginBlock(char* baselangterm){
+    Block block = (Block) malloc(sizeof(Block));
+    block->numnarrowterms = 0;
+    block -> baselangterm = strdup(baselangterm);
+    g_hash_table_insert(dict->blocktable, block->baselangterm, block);
+    return block;
+}
+
+void addNarrowTerm(char* word){
+    currentblock->narrowterms[currentblock->numnarrowterms] = strdup(word);
+    currentblock->numnarrowterms++;
+
+    int i;
+    for(i = 0; i < currentblock->numnarrowterms; i++) {
+    }
+}
+
+void addBroadTerm(char* word){
+    currentblock->broadterm = strdup(word);
+}
+
+void addOtherLangTerm(char* word){
+    currentblock -> otherlangterm = strdup(word);
+}
+
+void addTerms(char* term){
+    if(!strcmp(currentlang, "BT")) {
+        addBroadTerm(term);
+    }
+    else if(!strcmp(currentlang, "NT")) {
+        char *token;
+
+        token = strtok(term, " \n\t");
+
+        while( token != NULL ) {
+            addNarrowTerm(token);
+            token = strtok(NULL, " \n\t");
+        }
+    }
+
+    else if(!strcmp(currentlang, "SN")) {
+        /*char *token;
+
+        token = strtok(term, " \n\t");
+
+        while( token != NULL ) {
+            //printf("%s ", token);
+            addDescription(token);
+            token = strtok(NULL, " \n\t");
+        }
+        strcat(currentblock->description, "\0");*/
+        addDescription(term);
+    }
+
+    else {
+        addOtherLangTerm(term);
+    }
+}
+
+void addDescription(char* desc) {
+    if(currentblock -> description == NULL) {
+        currentblock -> description = strdup(desc);
+    }
+    else {
+        strcat(currentblock -> description, " ");
+        strcat(currentblock -> description, strdup(desc));
+    }
+    printf("%s\n", currentblock->description);
 }
