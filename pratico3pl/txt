@@ -3,10 +3,21 @@
 %inv NT BT
 
 animal
-PT animal
+PT animalpt
 NT cat, dog, cow,
 fish, ant
 NT camel
 BT life being
 SN animal que tem sete
 vidas e m(e)ia
+
+cat
+PT gato
+BT animal
+SN animal que tem sete
+vidas e m(e)ia
+
+camel
+PT camelo
+BT animal
+SN tem duas bossas e muito pelo assim coiso e tal

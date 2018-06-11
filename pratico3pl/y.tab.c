@@ -67,6 +67,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <glib.h>
 
 int yylex();
@@ -77,9 +78,8 @@ typedef struct dict{
 int numlanguages;
 int numinv;
 char* baselang;
-char* languages[2]; //baselang, outra lang
-char* inv[2];
-GHashTable *blocktable;// = g_hash_table_new(NULL,NULL);
+char* languages[20]; //baselang, outra lang
+char* inv[20];
 } *Dict;
 
 typedef struct block{
@@ -91,20 +91,24 @@ char* broadterm;
 char* description;
 } *Block;
 
-Dict dict;
-Block currentblock;
-char* currentlang;
+GHashTable *blocktable;
 
-void addLanguage(char** languages, char* lang);
-void addInv(char** invs, char* inv);
+
+Dict dict = NULL;
+Block currentblock = NULL;
+char* currentlang;
+FILE* f;
+void addLanguage(char* lang);
+void addInvs(char* inv);
 Block beginBlock(char* baselangterm);
 void addNarrowTerm(char* word);
 void addBroadTerm(char* word);
 void addOtherLangTerm(char* word);
 void addTerms(char* term);
 void addDescription(char* desc);
+void doHtml();
 
-#line 108 "y.tab.c" /* yacc.c:339  */
+#line 112 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -157,10 +161,10 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 43 "yacc.y" /* yacc.c:355  */
+#line 47 "yacc.y" /* yacc.c:355  */
 char* s;
 
-#line 164 "y.tab.c" /* yacc.c:355  */
+#line 168 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -177,7 +181,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 181 "y.tab.c" /* yacc.c:358  */
+#line 185 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -475,8 +479,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    49,    49,    51,    52,    55,    56,    57,    58,    59,
-      62,    63,    66,    67,    70,    71
+       0,    51,    51,    53,    54,    57,    58,    59,    60,    61,
+      64,    65,    68,    69,    72,    73
 };
 #endif
 
@@ -1253,91 +1257,91 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 49 "yacc.y" /* yacc.c:1646  */
+#line 51 "yacc.y" /* yacc.c:1646  */
     { }
-#line 1259 "y.tab.c" /* yacc.c:1646  */
+#line 1263 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 51 "yacc.y" /* yacc.c:1646  */
-    { (yyval.s) = "";}
-#line 1265 "y.tab.c" /* yacc.c:1646  */
+#line 53 "yacc.y" /* yacc.c:1646  */
+    { }
+#line 1269 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 52 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "%s%s \n", (yyvsp[-1].s), (yyvsp[0].s)); }
-#line 1271 "y.tab.c" /* yacc.c:1646  */
+#line 54 "yacc.y" /* yacc.c:1646  */
+    { }
+#line 1275 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 55 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "linguas %s", (yyvsp[0].s));}
-#line 1277 "y.tab.c" /* yacc.c:1646  */
+#line 57 "yacc.y" /* yacc.c:1646  */
+    { addLanguage(strdup((yyvsp[0].s)));}
+#line 1281 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 56 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "baselang %s\n", (yyvsp[0].s)); dict->baselang = strdup((yyvsp[0].s));}
-#line 1283 "y.tab.c" /* yacc.c:1646  */
+#line 58 "yacc.y" /* yacc.c:1646  */
+    { dict->baselang = strdup((yyvsp[0].s));}
+#line 1287 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 57 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "relacoes inversas %s", (yyvsp[0].s)); }
-#line 1289 "y.tab.c" /* yacc.c:1646  */
+#line 59 "yacc.y" /* yacc.c:1646  */
+    { addInvs(strdup((yyvsp[0].s))); }
+#line 1293 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 58 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "termo na baselang %s\n", (yyvsp[0].s));  currentblock = beginBlock((yyvsp[0].s));}
-#line 1295 "y.tab.c" /* yacc.c:1646  */
+#line 60 "yacc.y" /* yacc.c:1646  */
+    { currentblock = beginBlock(strdup((yyvsp[0].s)));}
+#line 1299 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 59 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "Lang - %s, words - %s", (yyvsp[-1].s), (yyvsp[0].s)); currentlang = strdup((yyvsp[-1].s)); addTerms((yyvsp[0].s));}
-#line 1301 "y.tab.c" /* yacc.c:1646  */
+#line 61 "yacc.y" /* yacc.c:1646  */
+    { currentlang = strdup((yyvsp[-1].s)); addTerms(strdup((yyvsp[0].s)));}
+#line 1305 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 62 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "%s %s", (yyvsp[-1].s), (yyvsp[0].s)); addLanguage(dict->languages, (yyvsp[-1].s));}
-#line 1307 "y.tab.c" /* yacc.c:1646  */
+#line 64 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s %s", (yyvsp[-1].s), (yyvsp[0].s));}
+#line 1311 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 63 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "%s\n", (yyvsp[0].s)); addLanguage(dict->languages, (yyvsp[0].s));}
-#line 1313 "y.tab.c" /* yacc.c:1646  */
+#line 65 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s\n", (yyvsp[0].s));}
+#line 1317 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 66 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "%s %s", (yyvsp[-1].s), (yyvsp[0].s)); addInv(dict->inv, (yyvsp[-1].s));}
-#line 1319 "y.tab.c" /* yacc.c:1646  */
+#line 68 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s %s", (yyvsp[-1].s), (yyvsp[0].s));}
+#line 1323 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 67 "yacc.y" /* yacc.c:1646  */
-    { asprintf(&(yyval.s), "%s\n", (yyvsp[0].s)); addInv(dict->inv, (yyvsp[0].s));}
-#line 1325 "y.tab.c" /* yacc.c:1646  */
+#line 69 "yacc.y" /* yacc.c:1646  */
+    { asprintf(&(yyval.s), "%s\n", (yyvsp[0].s));     }
+#line 1329 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 70 "yacc.y" /* yacc.c:1646  */
+#line 72 "yacc.y" /* yacc.c:1646  */
     {asprintf(&(yyval.s), "%s %s", (yyvsp[-1].s), (yyvsp[0].s));}
-#line 1331 "y.tab.c" /* yacc.c:1646  */
+#line 1335 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 71 "yacc.y" /* yacc.c:1646  */
+#line 73 "yacc.y" /* yacc.c:1646  */
     { asprintf(&(yyval.s), "%s\n", (yyvsp[0].s));}
-#line 1337 "y.tab.c" /* yacc.c:1646  */
+#line 1341 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1341 "y.tab.c" /* yacc.c:1646  */
+#line 1345 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1565,17 +1569,19 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 73 "yacc.y" /* yacc.c:1906  */
+#line 75 "yacc.y" /* yacc.c:1906  */
 
 
 #include "lex.yy.c"
 
+
 int main(){
     dict = (Dict) malloc(sizeof(Dict));
-    dict -> blocktable = g_hash_table_new(NULL,NULL);
+    blocktable = g_hash_table_new(NULL,NULL);
     dict -> numlanguages = 0;
-    dict->numinv = 0;
+    dict -> numinv = 0;
     yyparse();
+    doHtml();
     return 0;
 }
 
@@ -1583,21 +1589,39 @@ void yyerror(char* s){
     fprintf(stderr, "%s, '%s', line %d \n", s, yytext, yylineno);
 }
 
-void addLanguage(char** languages, char* lang){
-    languages[dict->numlanguages] = strdup(lang);
-    dict->numlanguages++;
+void addLanguage(char* lang){
+
+    char *token;
+
+    token = strtok(lang, " \n\t");
+
+    while( token != NULL ) {
+        dict->languages[dict->numlanguages] = strdup(token);
+        dict->numlanguages++;
+        token = strtok(NULL, " \n\t");
+    }
 }
 
-void addInv(char** invs, char* inv){
-    invs[dict->numinv] = strdup(inv);
-    dict->numinv++;
+void addInvs(char* inv){
+
+    char *token;
+
+    token = strtok(inv, " \n\t");
+
+    while( token != NULL ) {
+        dict->inv[dict->numinv] = strdup(token);
+        dict->numinv++;
+        token = strtok(NULL, " \n\t");
+    }
 }
 
 Block beginBlock(char* baselangterm){
+
     Block block = (Block) malloc(sizeof(Block));
     block->numnarrowterms = 0;
-    block -> baselangterm = strdup(baselangterm);
-    g_hash_table_insert(dict->blocktable, block->baselangterm, block);
+    block -> baselangterm = baselangterm;
+
+    g_hash_table_insert(blocktable, g_strdup(baselangterm), block);
     return block;
 }
 
@@ -1611,11 +1635,14 @@ void addNarrowTerm(char* word){
 }
 
 void addBroadTerm(char* word){
-    currentblock->broadterm = strdup(word);
+
+    char* newbt = strdup(word);
+    newbt[strcspn(newbt, "\n")] = 0;
+    currentblock -> broadterm = strdup(newbt);
 }
 
 void addOtherLangTerm(char* word){
-    currentblock -> otherlangterm = strdup(word);
+    currentblock -> otherlangterm = strtok(strdup(word), "\n\t ");
 }
 
 void addTerms(char* term){
@@ -1653,12 +1680,126 @@ void addTerms(char* term){
 }
 
 void addDescription(char* desc) {
-    if(currentblock -> description == NULL) {
-        currentblock -> description = strdup(desc);
-    }
-    else {
+
+    char* newdesc = strdup(desc);
+    newdesc[strcspn(newdesc, "\n")] = 0;
+    currentblock -> description = strdup(newdesc);
+
+    /*else {
         strcat(currentblock -> description, " ");
         strcat(currentblock -> description, strdup(desc));
+    }*/
+    //printf("%s\n", currentblock->description);
+}
+
+void aux(void* k, void* val, void* userdata){
+    Block value = (Block) val;
+    printf("%s  \n", value->baselangterm);
+
+    printf("%s  \n", value->narrowterms[0]);
+
+    printf("%s  \n", value->description);
+
+}
+
+void auxIndex(void* k, void* val, void* userdata){
+    Block value = (Block) val;
+    // <li>Unclickable text <a href="page.html">clickable text</a>
+    fprintf(f, "<li> <a href=%s.html> %s </a> </li>", value->baselangterm, value->baselangterm);
+
+}
+
+void auxBaselangs(void* k, void* val, void* userdata){
+    Block value = (Block) val;
+    char* tmpname = value->baselangterm;
+    char* pagename = strcat(tmpname, ".html");
+    f = fopen(pagename, "w");
+    if (f == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
     }
-    printf("%s\n", currentblock->description);
+
+    fprintf(f, "<html>\n<body>\n");
+    fprintf(f, "<p>Translation: %s</p>\n", value->otherlangterm);
+
+    if(value->description != NULL){
+        fprintf(f, "<p>Description: %s</p>\n", value->description);
+    }
+
+    if(value->numnarrowterms > 0){
+        fprintf(f, "<p>Narrow terms:</p>\n");
+        fprintf(f, "<ul>\n");
+        int i = 0;
+        for(i = 0; i < value->numnarrowterms; i++){
+            fprintf(f, "<li> <a href=%s.html> %s </a> </li>\n", value->narrowterms[i], value->narrowterms[i]);
+        }
+        fprintf(f, "</ul>\n");
+    }
+
+    if(value->broadterm != NULL){
+        fprintf(f, "<p>Broad term:</p>\n");
+        fprintf(f, "<ul>\n");
+        fprintf(f, "<li> <a href='%s.html'> %s </a> </li>\n", value->broadterm, value->broadterm);
+        fprintf(f, "</ul>\n");
+    }
+    fprintf(f, "</body>\n</html>\n");
+}
+
+void doIndex(){
+    f = fopen("index.html", "w");
+    if (f == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+    fprintf(f, "<html>\n<body>\n<ul>\n");
+    g_hash_table_foreach (blocktable, auxIndex, NULL);
+    fprintf(f, "</ul>\n</body>\n</html>\n");
+    fclose(f);
+}
+
+void doBaselangTerms(){
+    g_hash_table_foreach (blocktable, auxBaselangs, NULL);
+}
+
+void auxBroadTermsSecondPass(void* k, void* val, void* userdata){
+    char* bt = (char*) userdata;
+    Block value = (Block) val;
+
+    if(!strcmp(value->broadterm, bt)){
+        int i = 0;
+        for(i = 0; i < value->numnarrowterms; i++){
+            fprintf(f, "<li><a href=%s.html>%s</a></li>\n", value->narrowterms[i], value->narrowterms[i]);
+        }
+    }
+}
+
+void auxBroadTermsFirstPass(void* k, void* val, void* userdata){
+    Block value = (Block) val;
+    char* bt;
+    if(value -> broadterm != NULL){
+        bt = strdup(value -> broadterm);
+        char* pagename = strcat(strdup(bt), ".html");
+        f = fopen(pagename, "w");
+        if (f == NULL) {
+            printf("Error opening file!\n");
+            exit(1);
+        }
+        fprintf(f, "<html>\n<body>\n");
+        fprintf(f, "<p>Broad term: %s</p>\n", bt);
+        fprintf(f, "<ul>\n");
+        g_hash_table_foreach (blocktable, auxBroadTermsSecondPass, bt);
+        fprintf(f, "</ul>\n");
+        fprintf(f, "</body>\n</hhtml>\n");
+    }
+}
+
+void doBroadTerms(){
+    g_hash_table_foreach (blocktable, auxBroadTermsFirstPass, NULL);
+}
+
+void doHtml(){
+    //g_hash_table_foreach (blocktable, aux, NULL);
+    doIndex();
+    doBaselangTerms();
+    doBroadTerms();
 }

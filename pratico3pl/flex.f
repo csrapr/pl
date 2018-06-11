@@ -13,6 +13,6 @@
 ^[a-z]+$        { yylval.s = strdup(yytext); return TERM; }
 [A-Z]+          { yylval.s = strdup(yytext); return LANG; }
 [a-z()-]+       { yylval.s = strdup(yytext); return WORD; }
-[ \t\n,]+        ;
+[ \t\n,]+       ;
 \#.*            ;
 %%
